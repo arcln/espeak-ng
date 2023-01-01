@@ -2019,7 +2019,31 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 					pts = match.points;
 					if (group_length > 1)
 						pts += 35; // to account for an extra letter matching
-					DecodePhonemes(match.phonemes, decoded_phonemes);
+
+					int use_ipa = option_phonemes & espeakPHONEMES_IPA;
+					if (use_ipa)
+					{
+						PHONEME_TAB *ph;
+						char *ipa_buffer = decoded_phonemes;
+
+						for (char *phonemex = match.phonemes; *phonemex != 0; phonemex++)
+						{
+							if (*phonemex == 255)
+								continue; // indicates unrecognised phoneme
+							if ((ph = phoneme_tab[*phonemex]) == NULL) {
+								printf("bad code: %c\n", *phonemex);
+								continue;
+
+							}
+
+							ipa_buffer = WritePhMnemonic(ipa_buffer, phoneme_tab[*phonemex], NULL, 1, NULL);
+						}
+					}
+					else
+					{
+						DecodePhonemes(match.phonemes, decoded_phonemes);
+					}
+
 					fprintf(f_trans, "%3d\t%s [%s]\n", pts, DecodeRule(group_chars, group_length, rule_start, word_flags, output), decoded_phonemes);
 				}
 			}
