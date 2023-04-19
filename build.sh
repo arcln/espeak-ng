@@ -3,10 +3,6 @@
 set -e
 cd $(dirname $0)
 
-make distclean || true
-rm -rf build
-mkdir -p build/bundle
-
 function build_target {
 	rust_arch="$1"
 	c_arch="$2"
@@ -28,6 +24,15 @@ function build_target {
 	cd -
 }
 
+function with_xcode_sdk {
+	CC="xcrun -sdk $1 clang -arch arm64" \
+	CXX="xcrun -sdk $1 clang++ -arch arm64" \
+	LD="xcrun -sdk $1 ld" \
+	AR="xcrun -sdk $1 ar" \
+	RANLIB="xcrun -sdk $1 ranlib" \
+	${@:2}
+}
+
 function build_data {
 	./configure --disable-shared --without-speechplayer
 	make -j 16 src/espeak-ng
@@ -43,9 +48,15 @@ function export_data {
 	cd -
 }
 
-build_target aarch64-apple-darwin aarch64-apple-darwin
-build_target aarch64-apple-ios aarch64-apple-ios
-build_target aarch64-apple-ios-sim aarch64-apple-ios-simulator
+make distclean || true
+./autogen.sh
+
+rm -rf build
+mkdir -p build/bundle
+
+build_target "aarch64-apple-darwin" "aarch64-apple-darwin"
+with_xcode_sdk "iphoneos" build_target "aarch64-apple-ios" "aarch64-apple-ios"
+with_xcode_sdk "iphonesimulator" build_target "aarch64-apple-ios-sim" "aarch64-apple-ios-simulator"
 
 build_data
 export_data
