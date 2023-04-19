@@ -20,7 +20,29 @@
 #define ENDIAN_H_COMPAT_SHIM
 #pragma once
 
-#if __has_include_next(<endian.h>)
+#if defined(__APPLE__)
+#	include <libkern/OSByteOrder.h>
+
+#	define htobe16(x) OSSwapHostToBigInt16(x)
+#	define htole16(x) OSSwapHostToLittleInt16(x)
+#	define be16toh(x) OSSwapBigToHostInt16(x)
+#	define le16toh(x) OSSwapLittleToHostInt16(x)
+ 
+#	define htobe32(x) OSSwapHostToBigInt32(x)
+#	define htole32(x) OSSwapHostToLittleInt32(x)
+#	define be32toh(x) OSSwapBigToHostInt32(x)
+#	define le32toh(x) OSSwapLittleToHostInt32(x)
+ 
+#	define htobe64(x) OSSwapHostToBigInt64(x)
+#	define htole64(x) OSSwapHostToLittleInt64(x)
+#	define be64toh(x) OSSwapBigToHostInt64(x)
+#	define le64toh(x) OSSwapLittleToHostInt64(x)
+
+#	define __BYTE_ORDER    BYTE_ORDER
+#	define __BIG_ENDIAN    BIG_ENDIAN
+#	define __LITTLE_ENDIAN LITTLE_ENDIAN
+#	define __PDP_ENDIAN    PDP_ENDIAN
+#elif __has_include_next(<endian.h>)
 #	pragma GCC system_header // Silence "warning: #include_next is a GCC extension"
 #	include_next <endian.h>
 #elif __has_include(<sys/endian.h>)
@@ -43,28 +65,6 @@
 #	if !defined(le64toh)
 #		define le64toh(x) letoh64(x)
 #	endif
-#elif defined(__APPLE__)
-#	include <libkern/OSByteOrder.h>
-
-#	define htobe16(x) OSSwapHostToBigInt16(x)
-#	define htole16(x) OSSwapHostToLittleInt16(x)
-#	define be16toh(x) OSSwapBigToHostInt16(x)
-#	define le16toh(x) OSSwapLittleToHostInt16(x)
- 
-#	define htobe32(x) OSSwapHostToBigInt32(x)
-#	define htole32(x) OSSwapHostToLittleInt32(x)
-#	define be32toh(x) OSSwapBigToHostInt32(x)
-#	define le32toh(x) OSSwapLittleToHostInt32(x)
- 
-#	define htobe64(x) OSSwapHostToBigInt64(x)
-#	define htole64(x) OSSwapHostToLittleInt64(x)
-#	define be64toh(x) OSSwapBigToHostInt64(x)
-#	define le64toh(x) OSSwapLittleToHostInt64(x)
-
-#	define __BYTE_ORDER    BYTE_ORDER
-#	define __BIG_ENDIAN    BIG_ENDIAN
-#	define __LITTLE_ENDIAN LITTLE_ENDIAN
-#	define __PDP_ENDIAN    PDP_ENDIAN
 #elif defined(_WIN16) || defined(_WIN32) || defined(_WIN64)
 #	if BYTE_ORDER == LITTLE_ENDIAN
 
