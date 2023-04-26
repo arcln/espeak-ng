@@ -56,14 +56,14 @@ extern "C"
 
 #define PLATFORM_WINDOWS 1
 #define PATHSEP '\\'
-#define N_PATH_HOME_DEF  230
+#define N_PATH_HOME_DEF  512
 #define NO_VARIADIC_MACROS
 
 #else
 
 #define PLATFORM_POSIX 1
 #define PATHSEP  '/'
-#define N_PATH_HOME_DEF  160
+#define N_PATH_HOME_DEF  512
 #define USE_NANOSLEEP
 #define __cdecl
 
