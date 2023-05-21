@@ -58,5 +58,10 @@ build_target "aarch64-apple-darwin" "aarch64-apple-darwin"
 with_xcode_sdk "iphoneos" build_target "aarch64-apple-ios" "aarch64-apple-ios"
 with_xcode_sdk "iphonesimulator" build_target "aarch64-apple-ios-sim" "aarch64-apple-ios-simulator"
 
+build_target "aarch64-linux-android" "aarch64-linux-android"
+build_target "armv7-linux-androideabi" "armv7-linux-androideabi"
+build_target "x86_64-linux-android" "x86_64-linux-android"
+build_target "i686-linux-android" "i686-linux-android"
+
 build_data
 export_data
