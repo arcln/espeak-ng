@@ -3,33 +3,22 @@
 set -e
 cd $(dirname $0)
 
-function build_target {
-	rust_arch="$1"
-	c_arch="$2"
-
-	mkdir -p build/$rust_arch
-	mkdir -p build/bundle/$rust_arch
-	cd build/$rust_arch
-
-	CFLAGS="-I../../src/include -I../../src/include/compat" \
-		../../configure \
-		--disable-shared \
-		--without-speechplayer \
-		--host=aarch64-apple-darwin \
-		--target=$c_arch
-
-	make -j 16 src/espeak-ng
-	cp src/.libs/libespeak-ng.a ../../build/bundle/$rust_arch/libespeak-ng.a
-
-	cd -
-}
-
 function with_xcode_sdk {
 	CC="xcrun -sdk $1 clang -arch arm64" \
 	CXX="xcrun -sdk $1 clang++ -arch arm64" \
 	LD="xcrun -sdk $1 ld" \
 	AR="xcrun -sdk $1 ar" \
 	RANLIB="xcrun -sdk $1 ranlib" \
+	${@:2}
+}
+
+function with_android_sdk {
+	abi="33"
+
+	PATH=$NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH \
+	CC="$1$abi-clang" \
+	CXX="$1$abi-clang++" \
+	LD="toto" \
 	${@:2}
 }
 
@@ -42,7 +31,7 @@ function build_data {
 	rm -rf build/bundle/mbrola_ph build/bundle/voices
 }
 
-function export_data {
+function export_bundle {
 	cd build/bundle
 	zip -r ../libespeak-ng.zip .
 	cd -
@@ -54,14 +43,14 @@ make distclean || true
 rm -rf build
 mkdir -p build/bundle
 
-build_target "aarch64-apple-darwin" "aarch64-apple-darwin"
-with_xcode_sdk "iphoneos" build_target "aarch64-apple-ios" "aarch64-apple-ios"
-with_xcode_sdk "iphonesimulator" build_target "aarch64-apple-ios-sim" "aarch64-apple-ios-simulator"
+./build_target.sh "aarch64-apple-darwin" "aarch64-apple-darwin"
+with_xcode_sdk "iphoneos" ./build_target.sh "aarch64-apple-ios" "aarch64-apple-ios"
+with_xcode_sdk "iphonesimulator" ./build_target.sh "aarch64-apple-ios-sim" "aarch64-apple-ios-simulator"
 
-build_target "aarch64-linux-android" "aarch64-linux-android"
-build_target "armv7-linux-androideabi" "armv7-linux-androideabi"
-build_target "x86_64-linux-android" "x86_64-linux-android"
-build_target "i686-linux-android" "i686-linux-android"
+with_android_sdk "aarch64-linux-android" ./build_target.sh "aarch64-linux-android" "aarch64-linux-android" || true
+with_android_sdk "armv7a-linux-androideabi" ./build_target.sh "armv7-linux-androideabi" "armv7-linux-androideabi" || true
+with_android_sdk "i686-linux-android" ./build_target.sh "i686-linux-android" "i686-linux-android" || true
+with_android_sdk "x86_64-linux-android" ./build_target.sh "x86_64-linux-android" "x86_64-linux-android" || true
 
 build_data
-export_data
+export_bundle
