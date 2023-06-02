@@ -18,8 +18,14 @@ function with_android_sdk {
 	PATH=$NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH \
 	CC="$1$abi-clang" \
 	CXX="$1$abi-clang++" \
-	LD="toto" \
 	${@:2}
+}
+
+function with_linux_sdk {
+	CC="x86_64-unknown-linux-gnu-gcc" \
+	CXX="x86_64-unknown-linux-gnu-g++" \
+	LD="x86_64-unknown-linux-gnu-ld" \
+	${@:1}
 }
 
 function build_data {
@@ -51,6 +57,7 @@ with_android_sdk "aarch64-linux-android" ./build_target.sh "aarch64-linux-androi
 with_android_sdk "armv7a-linux-androideabi" ./build_target.sh "armv7-linux-androideabi" "armv7-linux-androideabi" || true
 with_android_sdk "i686-linux-android" ./build_target.sh "i686-linux-android" "i686-linux-android" || true
 with_android_sdk "x86_64-linux-android" ./build_target.sh "x86_64-linux-android" "x86_64-linux-android" || true
+with_linux_sdk ./build_target.sh "x86_64-unknown-linux-gnu" "x86_64-unknown-linux-gnu" || true
 
 build_data
 export_bundle
