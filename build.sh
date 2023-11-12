@@ -3,6 +3,11 @@
 set -e
 cd $(dirname $0)
 
+function clean_workspace {
+	make distclean || true
+	./autogen.sh
+}
+
 function with_xcode_sdk {
 	CC="xcrun -sdk $1 clang -arch arm64" \
 	CXX="xcrun -sdk $1 clang++ -arch arm64" \
@@ -12,20 +17,9 @@ function with_xcode_sdk {
 	${@:2}
 }
 
-function with_android_sdk {
-	abi="33"
-
-	PATH=$NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH \
-	CC="$1$abi-clang" \
-	CXX="$1$abi-clang++" \
-	${@:2}
-}
-
-function with_linux_sdk {
-	CC="x86_64-unknown-linux-gnu-gcc" \
-	CXX="x86_64-unknown-linux-gnu-g++" \
-	LD="x86_64-unknown-linux-gnu-ld" \
-	${@:1}
+function build_in_docker {
+	clean_workspace
+	docker run --rm -t -v $(pwd):/src -w /src --entrypoint bash --platform linux/amd64 "ghcr.io/cross-rs/$1:main" -- ./build_target.sh "$1" "$1" "x86_64-unknown-linux-gnu"
 }
 
 function build_data {
@@ -43,21 +37,18 @@ function export_bundle {
 	cd -
 }
 
-make distclean || true
-./autogen.sh
+git clean -fdx
 
-rm -rf build
-mkdir -p build/bundle
+clean_workspace
+./build_target.sh "aarch64-apple-darwin" "aarch64-apple-darwin" "aarch64-apple-darwin"
+with_xcode_sdk "iphoneos" ./build_target.sh "aarch64-apple-ios" "aarch64-apple-ios" "aarch64-apple-darwin"
+with_xcode_sdk "iphonesimulator" ./build_target.sh "aarch64-apple-ios-sim" "aarch64-apple-ios-simulator" "aarch64-apple-darwin"
 
-./build_target.sh "aarch64-apple-darwin" "aarch64-apple-darwin"
-with_xcode_sdk "iphoneos" ./build_target.sh "aarch64-apple-ios" "aarch64-apple-ios"
-with_xcode_sdk "iphonesimulator" ./build_target.sh "aarch64-apple-ios-sim" "aarch64-apple-ios-simulator"
-
-with_android_sdk "aarch64-linux-android" ./build_target.sh "aarch64-linux-android" "aarch64-linux-android" || true
-with_android_sdk "armv7a-linux-androideabi" ./build_target.sh "armv7-linux-androideabi" "armv7-linux-androideabi" || true
-with_android_sdk "i686-linux-android" ./build_target.sh "i686-linux-android" "i686-linux-android" || true
-with_android_sdk "x86_64-linux-android" ./build_target.sh "x86_64-linux-android" "x86_64-linux-android" || true
-with_linux_sdk ./build_target.sh "x86_64-unknown-linux-gnu" "x86_64-unknown-linux-gnu" || true
+build_in_docker "x86_64-linux-android"
+build_in_docker "i686-linux-android"
+build_in_docker "aarch64-linux-android"
+build_in_docker "armv7-linux-androideabi"
+build_in_docker "x86_64-unknown-linux-gnu"
 
 build_data
 export_bundle
