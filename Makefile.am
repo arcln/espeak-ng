@@ -139,7 +139,7 @@ espeak_ng_include_HEADERS = \
 
 lib_LTLIBRARIES += src/libespeak-ng.la
 
-src_libespeak_ng_la_LDFLAGS = -version-info $(SHARED_VERSION) -lpthread -lm \
+src_libespeak_ng_la_LDFLAGS = -version-info $(SHARED_VERSION) -lm \ # -lpthread
 	${PCAUDIOLIB_LIBS}
 
 src_libespeak_ng_la_CFLAGS = \
