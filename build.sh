@@ -35,7 +35,7 @@ function build_data {
 	make
 
 	cp -r espeak-ng-data build/bundle
-	rm -rf build/bundle/mbrola_ph build/bundle/voices
+	rm -rf build/bundle/espeak-ng-data/mbrola_ph build/bundle/espeak-ng-data/voices
 }
 
 function export_bundle {
@@ -64,9 +64,9 @@ function stuff_with_lpthread {
 	export_bundle
 }
 
-# stuff_without_lpthread
+stuff_without_lpthread
 
 # this will not work "as-is" because of missing -lpthread in Makefile.am
 # TODO: automate this
 # for now need to manually add -lpthread in Makefile.am and run this part
-stuff_with_lpthread
+# stuff_with_lpthread
